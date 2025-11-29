@@ -1,0 +1,333 @@
+# Motorcycle OEM Web-Crawler Constitution
+
+## Core Principles
+
+This constitution defines the fundamental rules and standards for the motorcycle OEM web-crawler system. All implementation must adhere to these principles.
+
+---
+
+## 1. Crawling Strategy
+
+### 1.1 Page Discovery
+- **Use Playwright** for all web crawling operations
+- **Crawl all internal pages** within the target OEM domain
+- Follow internal links recursively to discover all bike-related pages
+- Respect `robots.txt` directives while prioritizing comprehensive coverage
+- Maintain a visited URL registry to avoid duplicate crawling
+
+### 1.2 Safe & Respectful Crawling
+- **Rate limiting**: Implement delays between requests (minimum 1-2 seconds between page loads)
+- **User-Agent**: Use a descriptive, honest user-agent string identifying the crawler
+- **Respect server resources**: Do not overwhelm target servers with concurrent requests
+- **Error handling**: Gracefully handle 404s, timeouts, and server errors without crashing
+- **Session management**: Maintain proper session cookies and headers
+- **No aggressive retries**: Limit retry attempts (max 3 retries with exponential backoff)
+
+---
+
+## 2. Data Extraction
+
+### 2.1 Comprehensive Extraction
+- **Extract all bike data** available on each page, including:
+  - Model name and year
+  - Specifications (engine, dimensions, performance, etc.)
+  - Features and descriptions
+  - Pricing information (if available)
+  - Available colors/options
+  - Related models and variants
+
+### 2.2 Multi-Page Data Merging
+- **Merge data from multiple pages** when a single bike is described across:
+  - Main model page
+  - Specifications page
+  - Gallery/image pages
+  - Comparison pages
+  - Feature detail pages
+- **Preserve source attribution**: Track which page each data point came from
+- **Resolve conflicts**: When the same specification appears on multiple pages with different values, prefer the most authoritative source (e.g., official spec sheet over marketing copy)
+
+---
+
+## 3. Data Normalization
+
+### 3.1 Standard Schema
+All bike data must be normalized into a **standard schema** with the following structure:
+
+```python
+{
+    "manufacturer": str,           # OEM name
+    "model": str,                  # Model name
+    "year": int,                   # Model year
+    "variant": str | None,         # Variant/submodel name if applicable
+    "specifications": {
+        "engine": {
+            "type": str,           # e.g., "Inline-4", "V-Twin"
+            "displacement_cc": float,
+            "bore_mm": float,
+            "stroke_mm": float,
+            "compression_ratio": float,
+            "max_power_kw": float,
+            "max_power_rpm": int,
+            "max_torque_nm": float,
+            "max_torque_rpm": int,
+            "fuel_system": str,
+            "ignition": str,
+            "starter": str,
+            "lubrication": str
+        },
+        "transmission": {
+            "type": str,           # e.g., "6-speed manual", "CVT"
+            "clutch": str,
+            "final_drive": str
+        },
+        "chassis": {
+            "frame_type": str,
+            "front_suspension": str,
+            "rear_suspension": str,
+            "front_brake": str,
+            "rear_brake": str,
+            "front_tire": str,
+            "rear_tire": str
+        },
+        "dimensions": {
+            "length_mm": float,
+            "width_mm": float,
+            "height_mm": float,
+            "wheelbase_mm": float,
+            "ground_clearance_mm": float,
+            "seat_height_mm": float,
+            "dry_weight_kg": float,
+            "wet_weight_kg": float,
+            "fuel_capacity_liters": float
+        },
+        "performance": {
+            "top_speed_kmh": float,
+            "acceleration_0_100_kmh_sec": float,
+            "fuel_consumption_liters_per_100km": float
+        },
+        "electrical": {
+            "battery_voltage": int,
+            "alternator": str,
+            "headlight": str,
+            "tail_light": str
+        }
+    },
+    "features": list[str],         # List of feature descriptions
+    "description": str,            # Full description text
+    "colors": list[str],           # Available color options
+    "price": {
+        "currency": str,
+        "amount": float,
+        "region": str
+    } | None,
+    "images": {
+        "urls": list[str],         # Original image URLs
+        "local_paths": list[str]   # Local downloaded paths
+    },
+    "source_urls": list[str],      # URLs where data was collected from
+    "extraction_timestamp": str     # ISO 8601 timestamp
+}
+```
+
+### 3.2 Metric Units Requirement
+- **ALL measurements MUST be in metric units**:
+  - Length/dimensions: millimeters (mm) or meters (m)
+  - Weight: kilograms (kg)
+  - Displacement: cubic centimeters (cc)
+  - Power: kilowatts (kW) - convert from horsepower if needed (1 hp ≈ 0.7457 kW)
+  - Torque: Newton-meters (Nm)
+  - Speed: kilometers per hour (km/h)
+  - Volume: liters (L)
+  - Fuel consumption: liters per 100 kilometers (L/100km)
+- **Unit conversion**: Automatically convert imperial units to metric when encountered
+- **Unit detection**: Parse and identify units from source text before conversion
+
+### 3.3 Data Quality Rules
+- **No guessing values**: If a specification is not found, use `None` or omit the field
+- **Preserve precision**: Maintain original precision when converting units
+- **Type validation**: Ensure numeric fields are properly typed (int vs float)
+- **Required fields**: Manufacturer, model, and year are mandatory; all other fields are optional
+
+---
+
+## 4. Image Handling
+
+### 4.1 Image Download
+- **Download all images** associated with each bike model
+- **Organize by bike/year**: Store images in directories structured as `images/{manufacturer}/{model}/{year}/`
+- **Preserve original filenames** when possible, or generate descriptive filenames
+- **Image formats**: Support common formats (JPEG, PNG, WebP)
+- **Image metadata**: Store original URLs and download timestamps
+
+### 4.2 Image Processing
+- **Deduplication**: Avoid downloading the same image multiple times (hash-based detection)
+- **Size limits**: Respect reasonable file size limits to avoid storage issues
+- **Error handling**: Skip corrupted or inaccessible images gracefully
+
+---
+
+## 5. Output Format
+
+### 5.1 Markdown Files
+- **One markdown file per bike/year combination**
+- **File naming convention**: `{manufacturer}_{model}_{year}.md` (sanitize special characters)
+- **File location**: `output/{manufacturer}/{model}/{year}.md`
+
+### 5.2 Markdown Structure
+Each markdown file must follow this structure:
+
+```markdown
+# {Manufacturer} {Model} ({Year})
+
+## Overview
+[Description text]
+
+## Specifications
+
+### Engine
+- **Type**: [value]
+- **Displacement**: [value] cc
+- **Bore × Stroke**: [value] mm × [value] mm
+- **Compression Ratio**: [value]:1
+- **Max Power**: [value] kW @ [value] rpm
+- **Max Torque**: [value] Nm @ [value] rpm
+[... etc ...]
+
+### Transmission
+[...]
+
+### Chassis
+[...]
+
+### Dimensions
+[...]
+
+### Performance
+[...]
+
+## Features
+- [Feature 1]
+- [Feature 2]
+[...]
+
+## Colors
+- [Color 1]
+- [Color 2]
+[...]
+
+## Images
+![Image 1](relative/path/to/image1.jpg)
+![Image 2](relative/path/to/image2.jpg)
+[...]
+
+## Source Information
+- **Source URLs**: 
+  - [URL 1]
+  - [URL 2]
+- **Extracted**: [ISO 8601 timestamp]
+```
+
+### 5.3 Relative Paths
+- Use **relative paths** for images in markdown files
+- Ensure paths are correct relative to the markdown file location
+
+---
+
+## 6. Implementation Standards
+
+### 6.1 Code Quality
+- **Python**: All code must be written in Python
+- **Type hints**: Use type hints for all function signatures
+- **Error handling**: Comprehensive try/except blocks with logging
+- **Logging**: Structured logging for all operations (crawling, extraction, errors)
+
+### 6.2 Data Persistence
+- **Intermediate storage**: Save raw extracted data as JSON for debugging/reprocessing
+- **Progress tracking**: Maintain crawl state to support resumption after interruptions
+- **Validation**: Validate extracted data against schema before writing markdown
+
+### 6.3 Testing & Validation
+- **Unit tests**: Test normalization functions, unit conversions, and schema validation
+- **Integration tests**: Test end-to-end crawling and extraction workflows
+- **Data validation**: Verify all metric conversions and schema compliance
+
+---
+
+## 7. Ethical & Legal Considerations
+
+### 7.1 Respect for Target Sites
+- **Terms of Service**: Review and comply with target site's ToS
+- **Copyright**: Respect image and content copyrights
+- **Attribution**: Include source URLs in all output files
+
+### 7.2 Data Usage
+- **Purpose**: Use scraped data only for stated purposes
+- **Public data**: Only scrape publicly accessible pages
+- **Authentication**: Do not attempt to bypass authentication or access restricted areas
+
+---
+
+## 8. Error Handling & Recovery
+
+### 8.1 Graceful Degradation
+- **Partial data**: Accept and save partial data if complete extraction fails
+- **Missing fields**: Continue processing even if some specifications are unavailable
+- **Image failures**: Continue with text extraction even if image downloads fail
+
+### 8.2 Retry Strategy
+- **Network errors**: Retry with exponential backoff (max 3 attempts)
+- **Parse errors**: Log and skip problematic pages, continue with others
+- **State recovery**: Support resuming interrupted crawls from checkpoint
+
+---
+
+## 9. Performance & Scalability
+
+### 9.1 Efficiency
+- **Concurrent requests**: Use reasonable concurrency limits (max 3-5 concurrent requests)
+- **Caching**: Cache page content to avoid re-downloading during development
+- **Memory management**: Process and write data incrementally to avoid memory issues
+
+### 9.2 Monitoring
+- **Progress reporting**: Log progress (pages crawled, bikes extracted, images downloaded)
+- **Statistics**: Track success rates, error rates, and data completeness
+- **Performance metrics**: Monitor crawl speed and resource usage
+
+---
+
+## 10. Maintenance & Evolution
+
+### 10.1 Schema Evolution
+- **Version control**: Track schema versions in output files
+- **Backward compatibility**: Maintain compatibility with previous schema versions when possible
+- **Extension points**: Design schema to accommodate new fields without breaking existing code
+
+### 10.2 Site Changes
+- **Adaptability**: Design extraction logic to handle minor site structure changes
+- **Monitoring**: Detect when target sites change structure and require updates
+- **Fallback strategies**: Implement multiple extraction strategies for critical data points
+
+---
+
+## Summary Checklist
+
+Before considering a crawl complete, verify:
+- [ ] All internal pages within domain have been discovered and crawled
+- [ ] All bike data has been extracted and normalized to standard schema
+- [ ] All measurements converted to metric units
+- [ ] Multi-page data has been merged correctly
+- [ ] No guessed values - all missing data marked as None
+- [ ] All images downloaded and organized by bike/year
+- [ ] One markdown file created per bike/year combination
+- [ ] Markdown files use relative paths for images
+- [ ] Source URLs included in all output files
+- [ ] Crawling was respectful with proper rate limiting
+- [ ] All errors logged and handled gracefully
+
+---
+
+**Version**: 1.0  
+**Last Updated**: 2024  
+**Status**: Active
+
+

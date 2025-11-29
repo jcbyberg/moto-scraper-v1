@@ -40,3 +40,4 @@ echo "  export DBUS_SESSION_BUS_ADDRESS=\"unix:path=/run/user/\$(id -u)/bus\""
 echo "  sudo -E protonvpn-cli connect --fastest"
 echo ""
 
+

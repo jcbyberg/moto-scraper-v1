@@ -1,0 +1,14 @@
+# Motorcycle OEM Web-Crawler - Cursor Rules
+
+This project uses Spec Kit for development. Follow the specifications in:
+- SPECIFICATION.md
+- plan.md  
+- tasks.md
+- .specify/memory/constitution.md
+
+## Key Rules
+1. Follow the constitution and specifications strictly
+2. All measurements must be in metric units
+3. No guessing values - use None for missing data
+4. Rate limit: minimum 3 seconds between requests
+5. Human-like navigation with proper delays

@@ -103,3 +103,4 @@ protonvpn-cli login  # No sudo needed
 
 Once network blocking is resolved, Proton VPN will work perfectly!
 
+

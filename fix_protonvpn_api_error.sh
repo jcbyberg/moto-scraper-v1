@@ -90,3 +90,4 @@ echo "   - Sometimes temporary network issues resolve"
 echo "   - Or try: protonvpn-cli login Jcbyberg"
 echo ""
 
+
