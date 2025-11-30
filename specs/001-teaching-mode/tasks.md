@@ -61,6 +61,8 @@
 - [X] T022 [US1] Add error handling for recording failures in src/teaching/recorder.py
 - [X] T023 [US1] Add auto-save functionality in src/teaching/recorder.py (periodic saves during recording)
 - [X] T024 [US1] Implement visual recording indicator (optional: terminal UI with rich library)
+- [ ] T066 [US1] Implement crash recovery in src/teaching/recorder.py (detect and recover from browser crashes, restore session state)
+- [ ] T067 [US1] Add error recovery for failed interactions in src/teaching/recorder.py (retry logic, skip failed events, continue recording)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - user can record a session with all interactions and screenshots saved
 
@@ -221,17 +223,17 @@ Since US2 depends on US1 and US3 depends on US2:
 
 ## Task Summary
 
-- **Total Tasks**: 65
+- **Total Tasks**: 67 (added T066, T067 for crash/error recovery)
 - **Phase 1 (Setup)**: 5 tasks
 - **Phase 2 (Foundational)**: 5 tasks
-- **Phase 3 (US1 - Recording)**: 14 tasks
+- **Phase 3 (US1 - Recording)**: 16 tasks (added T066, T067)
 - **Phase 4 (US2 - Analysis)**: 10 tasks
 - **Phase 5 (US3 - Verification)**: 14 tasks
 - **Phase 6 (Polish)**: 17 tasks
 
 ### MVP Scope (User Story 1)
 
-- **MVP Tasks**: Phases 1, 2, and 3 (24 tasks total)
+- **MVP Tasks**: Phases 1, 2, and 3 (26 tasks total, including T066-T067)
 - **MVP Deliverable**: User can record teaching sessions with all interactions and screenshots saved
 - **MVP Test**: Record a session, verify data persistence
 

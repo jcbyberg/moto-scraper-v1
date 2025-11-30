@@ -123,8 +123,14 @@ A teaching mode system that allows users to interactively teach the AI how to na
 
 ### TR2: Performance
 - Recording must not significantly impact browser performance
+  - **Measurable**: Event capture overhead < 50ms per interaction event
+  - **Measurable**: Total recording overhead < 5% of browser operation time
 - Screenshot capture must be efficient (async, optional compression)
-- Analysis should complete within reasonable time (< 5 minutes for typical session)
+  - **Measurable**: Screenshot capture < 200ms per screenshot (viewport)
+  - **Measurable**: Screenshot file size < 2MB uncompressed, < 500KB with optional compression
+- Analysis should complete within reasonable time
+  - **Measurable**: < 5 minutes for typical session (100-200 interactions)
+  - **Measurable**: < 1 second per interaction for pattern analysis
 
 ### TR3: Data Format
 - Use structured JSON for interaction data

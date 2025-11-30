@@ -234,8 +234,8 @@ async def main():
     parser.add_argument("--images-dir", default="images", help="Images directory")
     parser.add_argument("--rate-limit", type=float, default=3.0, help="Rate limit in seconds between requests (default: 3.0, recommended: 3-5 for human-like behavior)")
     parser.add_argument("--log-level", default="INFO", help="Logging level")
-    parser.add_argument("--headless", action="store_true", default=True, help="Run browser in headless mode (default: True)")
-    parser.add_argument("--no-headless", dest="headless", action="store_false", help="Run browser with GUI (requires X server)")
+    # Default is headless=False (browser visible), use --headless to run in headless mode
+    parser.add_argument("--headless", action="store_true", default=False, help="Run browser in headless mode (default: False, browser visible)")
     parser.add_argument("--proxy", help="Proxy server (format: http://user:pass@host:port or host:port)")
     parser.add_argument("--proxy-user", help="Proxy username (if not in --proxy URL)")
     parser.add_argument("--proxy-pass", help="Proxy password (if not in --proxy URL)")

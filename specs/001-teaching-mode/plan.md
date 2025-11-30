@@ -69,7 +69,7 @@ Implement a teaching mode system that allows users to interactively teach the AI
 - **Storage**: Uses file-based storage (JSON, images) which aligns with existing crawler's file-based approach
 - **Integration**: Must integrate cleanly with existing crawler without breaking changes
 
-**Gate Status**: ✅ **PASS** - No constitution violations
+**Gate Status**: ✅ **PASS** - No constitution violations (see `.specify/memory/constitution.md` for full principles)
 
 ## Project Structure
 
